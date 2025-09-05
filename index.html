@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocuSummarize AI - Document Summarization SaaS</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>DocuSummarize AI</h1>
+      <p>Intelligent Document Summarization with AI</p>
+    </div>
+
+    <div class="main-card">
+      <!-- Upload Section -->
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📄</div>
+          <h3 class="upload-title">Drop your document here</h3>
+          <p class="upload-subtitle">or click to browse files</p>
+          <p class="upload-formats">Supports PDF and DOCX files</p>
+          <input type="file" id="fileInput" accept=".pdf,.docx" style="display: none" />
+        </div>
+      </div>
+
+      <!-- File Info -->
+      <div id="fileInfo" class="file-info" style="display: none">
+        <div class="file-card">
+          <span class="file-icon">📄</span>
+          <div class="file-details">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+          </div>
+          <button class="remove-file" id="removeFile">✕</button>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="action-section">
+        <button id="summarizeBtn" class="summarize-btn" disabled>
+          <span class="btn-text">Summarize Document</span>
+          <span class="btn-loader" style="display: none">⏳ Processing...</span>
+        </button>
+      </div>
+
+      <!-- Results Section -->
+      <div id="resultsSection" class="results-section" style="display: none">
+        <h3 class="results-title">📋 Document Summary</h3>
+        <div class="summary-card">
+          <div id="summaryContent" class="summary-content"></div>
+          <div class="summary-actions">
+            <button id="copyBtn" class="action-btn">📋 Copy</button>
+            <button id="downloadBtn" class="action-btn">💾 Download</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist Section -->
+      <div id="checklistSection" class="checklist-section" style="display: none">
+        <h3 class="checklist-title">✅ Actionable Items & Checklist</h3>
+        <div class="checklist-card">
+          <div id="checklistContent" class="checklist-content"></div>
+          <div class="checklist-actions">
+            <button id="copyChecklistBtn" class="action-btn">📋 Copy Checklist</button>
+            <button id="downloadChecklistBtn" class="action-btn">💾 Download Checklist</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Messages -->
+      <div id="statusMessage" class="status-message" style="display: none"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>© 2025 DocuSummarize AI - Powered by OpenAI & Google Gemini</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
