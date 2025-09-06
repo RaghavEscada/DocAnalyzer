@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  docu-summarize:
+    build: .
+    ports:
+      - "3000:80"
+    container_name: docu-summarize-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./logs:/var/log/nginx
+    networks:
+      - docu-network
+
+networks:
+  docu-network:
+    driver: bridge
