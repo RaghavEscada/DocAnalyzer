@@ -301,7 +301,7 @@ class DocumentSummarizer {
       super_detailed: "in a comprehensive, super detailed analysis with the following structure:\n\n**EXECUTIVE SUMMARY**\n- Brief overview of the document\n- Main purpose and scope\n- Key outcomes or conclusions\n\n**KEY FINDINGS & INSIGHTS**\n- Most important discoveries\n- Critical data points\n- Significant trends or patterns\n\n**TECH STACK & TECHNICAL ARCHITECTURE**\n- Technologies, frameworks, and tools mentioned\n- Programming languages and platforms\n- Database systems and infrastructure\n- APIs, libraries, and dependencies\n- Development methodologies and practices\n\n**PROJECT FLOW & PROCESSES**\n- Workflow and process descriptions\n- Step-by-step procedures\n- System interactions and data flow\n- User journeys and experience flows\n- Business processes and operations\n\n**DETAILED ANALYSIS**\n- In-depth examination of main topics\n- Supporting evidence and examples\n- Technical details and specifications\n- Implementation strategies\n\n**IMPORTANT DATA & STATISTICS**\n- Quantitative information\n- Metrics and measurements\n- Comparative data\n- Performance indicators\n\n**CONCLUSIONS & IMPLICATIONS**\n- What the findings mean\n- Business or practical implications\n- Future considerations\n- Technical implications\n\n**RECOMMENDATIONS**\n- Specific action items\n- Strategic suggestions\n- Implementation guidance\n- Technical recommendations\n\nUse bullet points, subheadings, and clear formatting throughout. Provide extensive detail with specific examples, quotes, and thorough explanations.",
     };
 
-    const checklistInstructions = "Additionally, extract and provide a separate actionable checklist with specific tasks, steps, or items that need to be done based on the document content. Format the checklist as a numbered list of actionable items.";
+    const checklistInstructions = "Additionally, extract and provide a separate actionable checklist organized by roles and responsibilities. Structure it as follows:\n\n**WEB DEVELOPER:**\n- [Specific development tasks]\n- [Technical implementation items]\n\n**GRAPHIC DESIGNER:**\n- [Design-related tasks]\n- [Visual elements to create]\n\n**PROJECT MANAGER:**\n- [Project coordination tasks]\n- [Management activities]\n\n**TOOLS & TECHNOLOGIES:**\n- [Required tools and software]\n- [Technical requirements]\n\n**OTHER ROLES:**\n- [Any other relevant roles and their tasks]\n\nFormat each section with bullet points for specific, actionable items.";
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -350,7 +350,7 @@ class DocumentSummarizer {
       super_detailed: "in a comprehensive, super detailed analysis with the following structure:\n\n**EXECUTIVE SUMMARY**\n- Brief overview of the document\n- Main purpose and scope\n- Key outcomes or conclusions\n\n**KEY FINDINGS & INSIGHTS**\n- Most important discoveries\n- Critical data points\n- Significant trends or patterns\n\n**TECH STACK & TECHNICAL ARCHITECTURE**\n- Technologies, frameworks, and tools mentioned\n- Programming languages and platforms\n- Database systems and infrastructure\n- APIs, libraries, and dependencies\n- Development methodologies and practices\n\n**PROJECT FLOW & PROCESSES**\n- Workflow and process descriptions\n- Step-by-step procedures\n- System interactions and data flow\n- User journeys and experience flows\n- Business processes and operations\n\n**DETAILED ANALYSIS**\n- In-depth examination of main topics\n- Supporting evidence and examples\n- Technical details and specifications\n- Implementation strategies\n\n**IMPORTANT DATA & STATISTICS**\n- Quantitative information\n- Metrics and measurements\n- Comparative data\n- Performance indicators\n\n**CONCLUSIONS & IMPLICATIONS**\n- What the findings mean\n- Business or practical implications\n- Future considerations\n- Technical implications\n\n**RECOMMENDATIONS**\n- Specific action items\n- Strategic suggestions\n- Implementation guidance\n- Technical recommendations\n\nUse bullet points, subheadings, and clear formatting throughout. Provide extensive detail with specific examples, quotes, and thorough explanations.",
     };
 
-    const checklistInstructions = "Additionally, extract and provide a separate actionable checklist with specific tasks, steps, or items that need to be done based on the document content. Format the checklist as a numbered list of actionable items.";
+    const checklistInstructions = "Additionally, extract and provide a separate actionable checklist organized by roles and responsibilities. Structure it as follows:\n\n**WEB DEVELOPER:**\n- [Specific development tasks]\n- [Technical implementation items]\n\n**GRAPHIC DESIGNER:**\n- [Design-related tasks]\n- [Visual elements to create]\n\n**PROJECT MANAGER:**\n- [Project coordination tasks]\n- [Management activities]\n\n**TOOLS & TECHNOLOGIES:**\n- [Required tools and software]\n- [Technical requirements]\n\n**OTHER ROLES:**\n- [Any other relevant roles and their tasks]\n\nFormat each section with bullet points for specific, actionable items.";
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -413,6 +413,9 @@ class DocumentSummarizer {
   displaySummary(summary) {
     this.elements.summaryContent.innerHTML = this.formatSummary(summary);
     this.elements.resultsSection.style.display = "block";
+    
+    // Add compact view toggle
+    this.addCompactViewToggle();
 
     // Smooth scroll to results
     setTimeout(() => {
@@ -423,20 +426,51 @@ class DocumentSummarizer {
     }, 300);
   }
 
+  addCompactViewToggle() {
+    // Check if toggle already exists
+    if (document.getElementById('compactToggle')) return;
+    
+    const toggle = document.createElement('button');
+    toggle.id = 'compactToggle';
+    toggle.className = 'compact-toggle';
+    toggle.textContent = '📄 Compact View';
+    toggle.onclick = () => this.toggleCompactView();
+    
+    // Insert after results title
+    const resultsTitle = document.querySelector('.results-title');
+    resultsTitle.parentNode.insertBefore(toggle, resultsTitle.nextSibling);
+  }
+
+  toggleCompactView() {
+    const content = this.elements.summaryContent;
+    const toggle = document.getElementById('compactToggle');
+    
+    if (content.classList.contains('compact-view')) {
+      content.classList.remove('compact-view');
+      toggle.textContent = '📄 Compact View';
+    } else {
+      content.classList.add('compact-view');
+      toggle.textContent = '📖 Full View';
+    }
+  }
+
   formatSummary(summary) {
-    // Convert markdown-style formatting to HTML
+    // Convert markdown-style formatting to HTML with optimized spacing
     return summary
       .replace(/\*\*(.*?)\*\*/g, '<h3 class="summary-heading">$1</h3>') // Bold text to headings
       .replace(/\*(.*?)\*/g, '<strong>$1</strong>') // Italic to bold
       .replace(/^- (.*$)/gm, '<li class="summary-bullet">$1</li>') // Bullet points
       .replace(/(<li class="summary-bullet">.*<\/li>)/gs, '<ul class="summary-list">$1</ul>') // Wrap bullets in ul
-      .replace(/\n\n/g, '</p><p class="summary-paragraph">') // Paragraph breaks
+      .replace(/\n\n+/g, '</p><p class="summary-paragraph">') // Multiple newlines to paragraph breaks
+      .replace(/\n/g, '<br>') // Single newlines to line breaks
       .replace(/^(?!<[h|u|l])/gm, '<p class="summary-paragraph">') // Wrap non-formatted text in paragraphs
       .replace(/(<p class="summary-paragraph">.*<\/p>)/gs, (match) => {
         // Clean up empty paragraphs and fix nested tags
         return match.replace(/<p class="summary-paragraph"><\/p>/g, '')
                    .replace(/<p class="summary-paragraph">(<[^>]+>)/g, '$1')
-                   .replace(/(<\/[^>]+>)<\/p>/g, '$1');
+                   .replace(/(<\/[^>]+>)<\/p>/g, '$1')
+                   .replace(/<br><\/p>/g, '</p>') // Remove trailing breaks
+                   .replace(/<p class="summary-paragraph"><br>/g, '<p class="summary-paragraph">'); // Remove leading breaks
       });
   }
 
@@ -448,22 +482,72 @@ class DocumentSummarizer {
   }
 
   formatChecklist(checklist) {
-    // Convert numbered list to HTML with checkboxes
-    return checklist
-      .split('\n')
-      .filter(line => line.trim())
-      .map(line => {
-        // Remove numbering and create checkbox
-        const cleanLine = line.replace(/^\d+\.\s*/, '').trim();
-        if (cleanLine) {
-          return `<div class="checklist-item">
-            <input type="checkbox" id="item-${Math.random().toString(36).substr(2, 9)}" class="checklist-checkbox">
-            <label for="item-${Math.random().toString(36).substr(2, 9)}" class="checklist-label">${cleanLine}</label>
-          </div>`;
+    // Parse role-based checklist structure
+    const sections = this.parseChecklistSections(checklist);
+    return this.renderChecklistColumns(sections);
+  }
+
+  parseChecklistSections(checklist) {
+    const sections = {};
+    let currentSection = null;
+    
+    const lines = checklist.split('\n').filter(line => line.trim());
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Check if it's a section header (bold text)
+      if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        currentSection = trimmedLine.replace(/\*\*/g, '').trim();
+        sections[currentSection] = [];
+      } else if (trimmedLine.startsWith('- ') && currentSection) {
+        // It's a bullet point under current section
+        const task = trimmedLine.replace(/^-\s*/, '').trim();
+        if (task) {
+          sections[currentSection].push(task);
         }
-        return '';
-      })
-      .join('');
+      }
+    }
+    
+    return sections;
+  }
+
+  renderChecklistColumns(sections) {
+    const roleIcons = {
+      'WEB DEVELOPER': '💻',
+      'GRAPHIC DESIGNER': '🎨',
+      'PROJECT MANAGER': '📋',
+      'TOOLS & TECHNOLOGIES': '🛠️',
+      'OTHER ROLES': '👥'
+    };
+
+    let html = '<div class="checklist-columns">';
+    
+    for (const [sectionName, tasks] of Object.entries(sections)) {
+      if (tasks.length === 0) continue;
+      
+      const icon = roleIcons[sectionName] || '📝';
+      
+      html += `
+        <div class="checklist-column">
+          <div class="checklist-column-header">
+            <span class="role-icon">${icon}</span>
+            <h4 class="role-title">${sectionName}</h4>
+          </div>
+          <div class="checklist-column-content">
+            ${tasks.map(task => `
+              <div class="checklist-item">
+                <input type="checkbox" id="item-${Math.random().toString(36).substr(2, 9)}" class="checklist-checkbox">
+                <label for="item-${Math.random().toString(36).substr(2, 9)}" class="checklist-label">${task}</label>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    html += '</div>';
+    return html;
   }
 
   async copyToClipboard() {
