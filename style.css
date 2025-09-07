@@ -405,6 +405,102 @@ body {
   background: #333333;
 }
 
+/* Role-wise Summaries Styles */
+.role-summaries-section {
+  margin-top: 40px;
+}
+
+.no-content {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.no-content p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.role-summaries-title {
+  color: #000000;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: -0.01em;
+}
+
+.role-summaries-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+}
+
+.role-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e5e5;
+  overflow-x: auto;
+}
+
+.role-tab {
+  background: #f5f5f5;
+  color: #666666;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.role-tab:hover {
+  background: #e5e5e5;
+  color: #000000;
+}
+
+.role-tab.active {
+  background: #000000;
+  color: #ffffff;
+  border-bottom-color: #000000;
+}
+
+.role-summaries-content {
+  min-height: 200px;
+}
+
+.role-content {
+  display: none;
+}
+
+.role-content.active {
+  display: block;
+}
+
+.role-summary-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #000000;
+}
+
+.role-summaries-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
 /* Checklist Styles */
 .checklist-section {
   margin-top: 40px;
@@ -618,6 +714,20 @@ body {
 
   .checklist-column-content {
     padding: 12px;
+  }
+
+  .role-tabs {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .role-tab {
+    border-radius: 6px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .role-summaries-actions {
+    flex-direction: column;
   }
 
   .header h1 {

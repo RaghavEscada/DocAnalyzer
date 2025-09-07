@@ -29,6 +29,10 @@ class DocumentSummarizer {
       summaryContent: document.getElementById("summaryContent"),
       copyBtn: document.getElementById("copyBtn"),
       downloadBtn: document.getElementById("downloadBtn"),
+      roleSummariesSection: document.getElementById("roleSummariesSection"),
+      roleSummariesContent: document.getElementById("roleSummariesContent"),
+      copyRoleSummariesBtn: document.getElementById("copyRoleSummariesBtn"),
+      downloadRoleSummariesBtn: document.getElementById("downloadRoleSummariesBtn"),
       checklistSection: document.getElementById("checklistSection"),
       checklistContent: document.getElementById("checklistContent"),
       copyChecklistBtn: document.getElementById("copyChecklistBtn"),
@@ -72,12 +76,25 @@ class DocumentSummarizer {
     this.elements.downloadBtn.addEventListener("click", () =>
       this.downloadSummary()
     );
+    this.elements.copyRoleSummariesBtn.addEventListener("click", () =>
+      this.copyRoleSummariesToClipboard()
+    );
+    this.elements.downloadRoleSummariesBtn.addEventListener("click", () =>
+      this.downloadRoleSummaries()
+    );
     this.elements.copyChecklistBtn.addEventListener("click", () =>
       this.copyChecklistToClipboard()
     );
     this.elements.downloadChecklistBtn.addEventListener("click", () =>
       this.downloadChecklist()
     );
+
+    // Role tab navigation
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('role-tab')) {
+        this.switchRoleTab(e.target);
+      }
+    });
 
     // API key input
     this.elements.apiKey.addEventListener("input", () => this.saveApiKey());
@@ -265,6 +282,7 @@ class DocumentSummarizer {
           length
         );
         summary = results.summary;
+        this.roleSummaries = results.roleSummaries;
         this.checklistItems = results.checklist;
       } else if (provider === "gemini") {
         const results = await this.summarizeWithGemini(
@@ -273,15 +291,19 @@ class DocumentSummarizer {
           length
         );
         summary = results.summary;
+        this.roleSummaries = results.roleSummaries;
         this.checklistItems = results.checklist;
       }
 
       if (summary) {
         this.displaySummary(summary);
+        if (this.roleSummaries) {
+          this.displayRoleSummaries(this.roleSummaries);
+        }
         if (this.checklistItems) {
           this.displayChecklist(this.checklistItems);
         }
-        this.showStatus("Summary and checklist generated successfully!", "success");
+        this.showStatus("Summary, role-wise summaries, and checklist generated successfully!", "success");
       } else {
         throw new Error("Failed to generate summary");
       }
@@ -314,7 +336,7 @@ class DocumentSummarizer {
         messages: [
           {
             role: "user",
-            content: `Please analyze the following document and provide two separate outputs:\n\n1. SUMMARY: ${lengthInstructions[length]}. Focus on the main points, key findings, and important conclusions.\n\n2. CHECKLIST: ${checklistInstructions}\n\nPlease format your response as follows:\n\nSUMMARY:\n[Your detailed summary here]\n\nCHECKLIST:\n[Your actionable checklist here]\n\nDocument content:\n${text}`,
+            content: `Please analyze the following document and provide three separate outputs:\n\n1. SUMMARY: ${lengthInstructions[length]}. Focus on the main points, key findings, and important conclusions.\n\n2. ROLE-WISE SUMMARIES: Create detailed summaries for different roles:\n\n**FOR WEB DEVELOPERS:**\n[Technical summary focusing on development aspects, code requirements, architecture, APIs, databases, frameworks, etc.]\n\n**FOR GRAPHIC DESIGNERS:**\n[Design-focused summary covering visual elements, UI/UX, branding, color schemes, typography, layouts, etc.]\n\n**FOR PROJECT MANAGERS:**\n[Management summary covering timelines, resources, milestones, team coordination, deliverables, etc.]\n\n**FOR BUSINESS STAKEHOLDERS:**\n[Business-focused summary covering objectives, ROI, market impact, strategic goals, etc.]\n\n3. CHECKLIST: ${checklistInstructions}\n\nPlease format your response as follows:\n\nSUMMARY:\n[Your detailed summary here]\n\nROLE-WISE SUMMARIES:\n[Your role-specific summaries here]\n\nCHECKLIST:\n[Your actionable checklist here]\n\nDocument content:\n${text}`,
           },
         ],
         max_tokens: length === "short" ? 150 : length === "medium" ? 300 : length === "long" ? 600 : 3000,
@@ -332,12 +354,14 @@ class DocumentSummarizer {
     const data = await response.json();
     const fullResponse = data.choices[0]?.message?.content?.trim();
     
-    // Parse the response to separate summary and checklist
-    const summaryMatch = fullResponse.match(/SUMMARY:\s*([\s\S]*?)(?=CHECKLIST:|$)/i);
+    // Parse the response to separate summary, role-wise summaries, and checklist
+    const summaryMatch = fullResponse.match(/SUMMARY:\s*([\s\S]*?)(?=ROLE-WISE SUMMARIES:|CHECKLIST:|$)/i);
+    const roleSummariesMatch = fullResponse.match(/ROLE-WISE SUMMARIES:\s*([\s\S]*?)(?=CHECKLIST:|$)/i);
     const checklistMatch = fullResponse.match(/CHECKLIST:\s*([\s\S]*?)$/i);
     
     return {
       summary: summaryMatch ? summaryMatch[1].trim() : fullResponse,
+      roleSummaries: roleSummariesMatch ? roleSummariesMatch[1].trim() : null,
       checklist: checklistMatch ? checklistMatch[1].trim() : null
     };
   }
@@ -364,7 +388,7 @@ class DocumentSummarizer {
             {
               parts: [
                 {
-                  text: `Please analyze the following document and provide two separate outputs:\n\n1. SUMMARY: ${lengthInstructions[length]}. Focus on the main points, key findings, and important conclusions.\n\n2. CHECKLIST: ${checklistInstructions}\n\nPlease format your response as follows:\n\nSUMMARY:\n[Your detailed summary here]\n\nCHECKLIST:\n[Your actionable checklist here]\n\nDocument content:\n${text}`,
+                  text: `Please analyze the following document and provide three separate outputs:\n\n1. SUMMARY: ${lengthInstructions[length]}. Focus on the main points, key findings, and important conclusions.\n\n2. ROLE-WISE SUMMARIES: Create detailed summaries for different roles:\n\n**FOR WEB DEVELOPER:**\n[Technical summary focusing on development aspects, code requirements, architecture, APIs, databases, frameworks, etc.]\n\n**FOR GRAPHIC DESIGNER:**\n[Design-focused summary covering visual elements, UI/UX, branding, color schemes, typography, layouts, etc.]\n\n**FOR PROJECT MANAGER:**\n[Management summary covering timelines, resources, milestones, team coordination, deliverables, etc.]\n\n**FOR BUSINESS STAKE:**\n[Business-focused summary covering objectives, ROI, market impact, strategic goals, etc.]\n\n3. CHECKLIST: ${checklistInstructions}\n\nPlease format your response as follows:\n\nSUMMARY:\n[Your detailed summary here]\n\nROLE-WISE SUMMARIES:\n[Your role-specific summaries here]\n\nCHECKLIST:\n[Your actionable checklist here]\n\nDocument content:\n${text}`,
                 },
               ],
             },
@@ -388,12 +412,14 @@ class DocumentSummarizer {
     const data = await response.json();
     const fullResponse = data.candidates[0]?.content?.parts[0]?.text?.trim();
     
-    // Parse the response to separate summary and checklist
-    const summaryMatch = fullResponse.match(/SUMMARY:\s*([\s\S]*?)(?=CHECKLIST:|$)/i);
+    // Parse the response to separate summary, role-wise summaries, and checklist
+    const summaryMatch = fullResponse.match(/SUMMARY:\s*([\s\S]*?)(?=ROLE-WISE SUMMARIES:|CHECKLIST:|$)/i);
+    const roleSummariesMatch = fullResponse.match(/ROLE-WISE SUMMARIES:\s*([\s\S]*?)(?=CHECKLIST:|$)/i);
     const checklistMatch = fullResponse.match(/CHECKLIST:\s*([\s\S]*?)$/i);
     
     return {
       summary: summaryMatch ? summaryMatch[1].trim() : fullResponse,
+      roleSummaries: roleSummariesMatch ? roleSummariesMatch[1].trim() : null,
       checklist: checklistMatch ? checklistMatch[1].trim() : null
     };
   }
@@ -472,6 +498,180 @@ class DocumentSummarizer {
                    .replace(/<br><\/p>/g, '</p>') // Remove trailing breaks
                    .replace(/<p class="summary-paragraph"><br>/g, '<p class="summary-paragraph">'); // Remove leading breaks
       });
+  }
+
+  displayRoleSummaries(roleSummaries) {
+    if (roleSummaries) {
+      this.roleSummariesData = this.parseRoleSummaries(roleSummaries);
+      
+      // Check if we have any parsed data
+      if (Object.keys(this.roleSummariesData).length > 0) {
+        this.elements.roleSummariesContent.innerHTML = this.renderRoleSummaries(this.roleSummariesData);
+        this.elements.roleSummariesSection.style.display = "block";
+        this.showActiveRoleTab();
+      } else {
+        // Show a message if no role summaries were parsed
+        console.log('No role summaries data found, showing fallback message');
+        this.elements.roleSummariesContent.innerHTML = `
+          <div class="no-content">
+            <p>No role-specific summaries were found in the AI response.</p>
+            <p>This might be because the document doesn't contain role-specific information, or the AI response format was unexpected.</p>
+            <p><strong>Debug Info:</strong> Check the browser console (F12) for detailed parsing information.</p>
+          </div>
+        `;
+        this.elements.roleSummariesSection.style.display = "block";
+      }
+    } else {
+      // Show a message if no role summaries were provided
+      this.elements.roleSummariesContent.innerHTML = `
+        <div class="no-content">
+          <p>No role-wise summaries were generated.</p>
+          <p>Try uploading a document with more detailed role-specific information.</p>
+        </div>
+      `;
+      this.elements.roleSummariesSection.style.display = "block";
+    }
+  }
+
+  parseRoleSummaries(roleSummaries) {
+    console.log('Parsing role summaries:', roleSummaries);
+    const sections = {};
+    let currentSection = null;
+    
+    const lines = roleSummaries.split('\n').filter(line => line.trim());
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Check for various section header formats
+      if (trimmedLine.match(/^\*\*.*\*\*$/) || 
+          trimmedLine.match(/^FOR\s+.*:$/i) ||
+          trimmedLine.match(/^.*:\s*$/)) {
+        
+        // Extract section name from different formats
+        let sectionName = trimmedLine
+          .replace(/\*\*/g, '') // Remove bold markers
+          .replace(/^FOR\s+/i, '') // Remove "FOR" prefix
+          .replace(/:\s*$/, '') // Remove trailing colon
+          .trim();
+        
+        // Map common variations to standard names
+        if (sectionName.toLowerCase().includes('web developer') || sectionName.toLowerCase().includes('developer')) {
+          sectionName = 'Web Developer';
+        } else if (sectionName.toLowerCase().includes('graphic designer') || sectionName.toLowerCase().includes('designer')) {
+          sectionName = 'Graphic Designer';
+        } else if (sectionName.toLowerCase().includes('project manager') || sectionName.toLowerCase().includes('manager')) {
+          sectionName = 'Project Manager';
+        } else if (sectionName.toLowerCase().includes('business') || sectionName.toLowerCase().includes('stakeholder')) {
+          sectionName = 'Business Stake';
+        }
+        
+        currentSection = sectionName;
+        sections[currentSection] = [];
+      } else if (currentSection && trimmedLine) {
+        // It's content under current section
+        sections[currentSection].push(trimmedLine);
+      }
+    }
+    
+    console.log('Parsed sections:', sections);
+    return sections;
+  }
+
+  renderRoleSummaries(roleData) {
+    console.log('Rendering role summaries with data:', roleData);
+    
+    const roleMapping = {
+      'Web Developer': 'web-developer',
+      'Graphic Designer': 'graphic-designer', 
+      'Project Manager': 'project-manager',
+      'Business Stake': 'business-stakeholder',
+      'Business Stakeholder': 'business-stakeholder',
+      'WEB DEVELOPER': 'web-developer',
+      'GRAPHIC DESIGNER': 'graphic-designer', 
+      'PROJECT MANAGER': 'project-manager',
+      'BUSINESS STAKE': 'business-stakeholder',
+      'BUSINESS STAKEHOLDER': 'business-stakeholder'
+    };
+
+    let html = '';
+    
+    for (const [roleName, content] of Object.entries(roleData)) {
+      const roleId = roleMapping[roleName] || 'other';
+      const contentText = content.join('\n');
+      
+      console.log(`Rendering role: ${roleName} -> ${roleId} with content:`, contentText);
+      
+      // If content is empty, add a placeholder
+      const displayContent = contentText.trim() || `No specific content found for ${roleName}. This role may not have detailed information in the document.`;
+      
+      html += `
+        <div class="role-content" id="role-${roleId}" style="display: none;">
+          <div class="role-summary-text">${this.formatSummary(displayContent)}</div>
+        </div>
+      `;
+    }
+    
+    console.log('Generated HTML:', html);
+    return html;
+  }
+
+  switchRoleTab(clickedTab) {
+    console.log('Switching to tab:', clickedTab);
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.role-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    
+    // Add active class to clicked tab
+    clickedTab.classList.add('active');
+    
+    // Hide all role content
+    document.querySelectorAll('.role-content').forEach(content => {
+      content.style.display = 'none';
+    });
+    
+    // Show selected role content
+    const roleId = clickedTab.getAttribute('data-role');
+    console.log('Looking for role content with ID:', `role-${roleId}`);
+    const roleContent = document.getElementById(`role-${roleId}`);
+    console.log('Found role content element:', roleContent);
+    
+    if (roleContent) {
+      roleContent.style.display = 'block';
+      console.log('Showing role content for:', roleId);
+    } else {
+      console.log('No role content found for:', roleId);
+    }
+  }
+
+  showActiveRoleTab() {
+    const activeTab = document.querySelector('.role-tab.active');
+    if (activeTab) {
+      this.switchRoleTab(activeTab);
+      
+      // Check if the active tab has content, if not, try to show the first available content
+      const roleId = activeTab.getAttribute('data-role');
+      const roleContent = document.getElementById(`role-${roleId}`);
+      
+      if (!roleContent || !roleContent.textContent.trim()) {
+        console.log('Active tab has no content, looking for first available content');
+        const allRoleContent = document.querySelectorAll('.role-content');
+        for (const content of allRoleContent) {
+          if (content.textContent.trim()) {
+            console.log('Found content in:', content.id);
+            // Find the corresponding tab and activate it
+            const tabRoleId = content.id.replace('role-', '');
+            const correspondingTab = document.querySelector(`[data-role="${tabRoleId}"]`);
+            if (correspondingTab) {
+              this.switchRoleTab(correspondingTab);
+              break;
+            }
+          }
+        }
+      }
+    }
   }
 
   displayChecklist(checklist) {
@@ -579,6 +779,45 @@ class DocumentSummarizer {
     URL.revokeObjectURL(url);
 
     this.showStatus("Summary downloaded successfully!", "success");
+  }
+
+  async copyRoleSummariesToClipboard() {
+    try {
+      let allSummaries = '';
+      for (const [roleName, content] of Object.entries(this.roleSummariesData)) {
+        allSummaries += `\n=== ${roleName} ===\n`;
+        allSummaries += content.join('\n') + '\n';
+      }
+      await navigator.clipboard.writeText(allSummaries);
+      this.showStatus("Role summaries copied to clipboard!", "success");
+    } catch (error) {
+      console.error("Copy failed:", error);
+      this.showStatus("Failed to copy role summaries to clipboard.", "error");
+    }
+  }
+
+  downloadRoleSummaries() {
+    let allSummaries = '';
+    for (const [roleName, content] of Object.entries(this.roleSummariesData)) {
+      allSummaries += `\n=== ${roleName} ===\n`;
+      allSummaries += content.join('\n') + '\n';
+    }
+    
+    const fileName = this.currentFile
+      ? `${this.currentFile.name.split(".")[0]}_role_summaries.txt`
+      : "document_role_summaries.txt";
+
+    const blob = new Blob([allSummaries], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.showStatus("Role summaries downloaded successfully!", "success");
   }
 
   async copyChecklistToClipboard() {
