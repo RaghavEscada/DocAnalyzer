@@ -1,7 +1,10 @@
 // Configuration file for environment variables
 // This file will be processed by envsubst to inject environment variables
 
+
+// Optionally set API keys for OpenAI and Gemini in production
 window.OPENAI_API_KEY = '${OPENAI_API_KEY}' || '';
+window.GEMINI_API_KEY = '${GEMINI_API_KEY}' || '';
 
 // You can also set other configuration here
 window.APP_CONFIG = {

@@ -1,4 +1,17 @@
 class DocumentSummarizer {
+
+  updateApiKeyInput() {
+    const provider = this.elements.providerSelect.value;
+    if (provider === 'openai') {
+      this.elements.apiKeyLabel.textContent = 'OpenAI API Key';
+      this.elements.apiKey.placeholder = 'Enter your OpenAI API key';
+      this.elements.apiHelp.textContent = 'Your API key is stored locally and never sent to our servers.';
+    } else if (provider === 'gemini') {
+      this.elements.apiKeyLabel.textContent = 'Gemini API Key';
+      this.elements.apiKey.placeholder = 'Enter your Gemini API key';
+      this.elements.apiHelp.textContent = 'Your Gemini API key is stored locally and never sent to our servers.';
+    }
+  }
   constructor() {
     this.currentFile = null;
     this.currentFileContent = null;
@@ -15,7 +28,10 @@ class DocumentSummarizer {
 
   initializeElements() {
     this.elements = {
+      providerSelect: document.getElementById("providerSelect"),
       apiKey: document.getElementById("apiKey"),
+      apiKeyLabel: document.getElementById("apiKeyLabel"),
+      apiHelp: document.getElementById("apiHelp"),
       uploadArea: document.getElementById("uploadArea"),
       fileInput: document.getElementById("fileInput"),
       fileInfo: document.getElementById("fileInfo"),
@@ -42,6 +58,17 @@ class DocumentSummarizer {
   }
 
   setupEventListeners() {
+    // Provider selection event
+    this.elements.providerSelect.addEventListener("change", () => {
+      const provider = this.elements.providerSelect.value;
+      localStorage.setItem('ai_provider', provider);
+      this.updateApiKeyInput();
+      // Load API key for this provider if available
+      const savedApiKey = localStorage.getItem(provider + '_api_key') || '';
+      this.elements.apiKey.value = savedApiKey;
+      this.apiKey = savedApiKey;
+      this.updateSummarizeButton();
+    });
     // File upload events
     this.elements.uploadArea.addEventListener("click", () =>
       this.elements.fileInput.click()
@@ -101,7 +128,13 @@ class DocumentSummarizer {
   }
 
   loadSettings() {
-    const savedApiKey = localStorage.getItem('openai_api_key');
+    // Default to OpenAI if not set
+    const savedProvider = localStorage.getItem('ai_provider') || 'openai';
+    this.elements.providerSelect.value = savedProvider;
+    this.updateApiKeyInput();
+
+    // Load API key for selected provider
+    const savedApiKey = localStorage.getItem(savedProvider + '_api_key');
     if (savedApiKey && this.elements.apiKey) {
       this.elements.apiKey.value = savedApiKey;
       this.apiKey = savedApiKey;
@@ -109,10 +142,12 @@ class DocumentSummarizer {
   }
 
   saveApiKey() {
-    const apiKey = this.elements.apiKey.value.trim();
-    this.apiKey = apiKey;
-    localStorage.setItem('openai_api_key', apiKey);
-    this.updateSummarizeButton();
+  const apiKey = this.elements.apiKey.value.trim();
+  this.apiKey = apiKey;
+  const provider = this.elements.providerSelect.value;
+  localStorage.setItem(provider + '_api_key', apiKey);
+  localStorage.setItem('ai_provider', provider);
+  this.updateSummarizeButton();
   }
 
   handleDragOver(e) {
@@ -259,7 +294,10 @@ class DocumentSummarizer {
   }
 
   async summarizeDocument() {
-    if (!this.currentFileContent || !this.apiKey) {
+    // Get provider and API key from UI/localStorage
+    const provider = this.elements.providerSelect.value;
+    const apiKey = this.elements.apiKey.value.trim();
+    if (!this.currentFileContent || !apiKey) {
       this.showStatus(
         "Please upload a document and enter your API key.",
         "error"
@@ -272,13 +310,12 @@ class DocumentSummarizer {
 
     try {
       let summary;
-      const provider = "openai"; // Default to OpenAI
       const length = "super_detailed"; // Default to super detailed
 
       if (provider === "openai") {
         const results = await this.summarizeWithOpenAI(
           this.currentFileContent,
-          this.apiKey,
+          apiKey,
           length
         );
         summary = results.summary;
@@ -287,7 +324,7 @@ class DocumentSummarizer {
       } else if (provider === "gemini") {
         const results = await this.summarizeWithGemini(
           this.currentFileContent,
-          this.apiKey,
+          apiKey,
           length
         );
         summary = results.summary;
@@ -309,7 +346,7 @@ class DocumentSummarizer {
       }
     } catch (error) {
       console.error("Summarization error:", error);
-      this.showStatus(`Error: ${error.message}`, "error");
+      this.showStatus(`Error: ${error.message}` , "error");
     } finally {
       this.setLoadingState(false);
     }
@@ -873,7 +910,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
   // Initialize the app
-  new DocumentSummarizer();
+  const app = new DocumentSummarizer();
+  // Ensure correct label/placeholder on load
+  app.updateApiKeyInput();
 
   console.log("📄 DocuSummarize AI initialized successfully!");
 });
