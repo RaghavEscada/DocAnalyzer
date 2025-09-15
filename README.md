@@ -2,6 +2,7 @@
 
 A sleek, modern document summarization app with AI-powered analysis and actionable checklists.
 
+
 ## Features
 
 - 📄 **Document Upload**: Support for PDF and DOCX files
@@ -9,6 +10,7 @@ A sleek, modern document summarization app with AI-powered analysis and actionab
 - ✅ **Actionable Checklists**: Interactive task lists extracted from documents
 - 🎨 **Modern UI**: Clean, Vercel-style black and white design
 - 📱 **Responsive**: Works on desktop, tablet, and mobile
+- 🔄 **Provider Choice**: Choose between OpenAI and Gemini for AI-powered analysis
 
 ## Quick Start with Docker
 
@@ -86,10 +88,11 @@ docker run -d -p 80:80 --name docu-summarize docu-summarize:latest
 - **Deployment**: Docker, Nginx
 - **File Processing**: PDF.js, Mammoth.js
 
+
 ## API Key
 
-The app uses an embedded OpenAI API key. For production use, consider:
-- Using environment variables
+The app supports both OpenAI and Gemini API keys. For production use, consider:
+- Using environment variables (OPENAI_API_KEY, GEMINI_API_KEY)
 - Implementing user-specific API keys
 - Adding rate limiting
 

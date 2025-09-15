@@ -22,9 +22,16 @@
       <!-- API Key Section -->
       <div class="api-section">
         <div class="form-group">
-          <label for="apiKey">OpenAI API Key</label>
+          <label for="providerSelect">AI Provider</label>
+          <select id="providerSelect">
+            <option value="openai">OpenAI</option>
+            <option value="gemini">Gemini</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="apiKey" id="apiKeyLabel">OpenAI API Key</label>
           <input type="password" id="apiKey" placeholder="Enter your OpenAI API key" />
-          <small class="api-help">Your API key is stored locally and never sent to our servers.</small>
+          <small class="api-help" id="apiHelp">Your API key is stored locally and never sent to our servers.</small>
         </div>
       </div>
 
